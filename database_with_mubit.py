@@ -8,7 +8,7 @@ import os
 
 tempup = 18
 tempdown = 16
-sleepingtime = 120
+sleepingtime = 60
 
 hostn = "localhost"
 databasen = "ferment_data"
