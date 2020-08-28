@@ -7,10 +7,6 @@ databasen = "ferment_data"
 usernamen = "jonastost"
 passwordn = "rachelrand"
 
-def handler(signum, frame):
-    print("The connecting statement timed out.")
-    raise Exception("Timeout")
-
 mysql = sql.connect(
     host= hostn,
     user=usernamen,

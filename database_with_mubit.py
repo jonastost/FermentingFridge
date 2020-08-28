@@ -6,8 +6,8 @@ import mysql.connector as sql
 import signal
 import os
 
-tempup = 16
-tempdown = 20
+tempup = 18
+tempdown = 16
 sleepingtime = 120
 
 hostn = "localhost"
