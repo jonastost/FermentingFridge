@@ -96,10 +96,14 @@ while total_time < 10209600:
     if off and current:
         print("Turning off the fridge...")
         os.system('sudo /var/www/html/rfoutlet/codesend 4199740')
+        time.sleep(2)
+        os.system('sudo /var/www/html/rfoutlet/codesend 4199740')
         current = False
         print("Done.")
     elif not off and not current:
         print("Turning on the fridge...")
+        os.system('sudo /var/www/html/rfoutlet/codesend 4199731')
+        time.sleep(2)
         os.system('sudo /var/www/html/rfoutlet/codesend 4199731')
         current = True
         print("Done.")
