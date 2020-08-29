@@ -36,7 +36,6 @@ mysql = sql.connect(
     password=passwordn,
     database=databasen
 )
-cursor = mysql.cursor()
 signal.signal(signal.SIGALRM, handler)
 os.system('sudo /var/www/html/rfoutlet/codesend 4199731')
 time.sleep(5)
@@ -48,12 +47,12 @@ temp = 20
 reconnections = 0
 delay = 0
 
-ubit.connect()
 print("connected and trying to receive sensor information")
 total_time = 0
 
-while total_time < 1209600:
+while True:
     start_total = time.time()
+    ubit.connect()
     disconnected = True
     while disconnected:
         start = time.time()
@@ -92,6 +91,7 @@ while total_time < 1209600:
             reconnect = True
         end = time.time()
         delay = delay + (end-start)
+    ubit.disconnect()
     # Can we get this part to run in the background such that we continue with rigid timing?
     start = time.time()
     if off and current:
@@ -110,6 +110,56 @@ while total_time < 1209600:
         print("Done.")
     print("There have been ", reconnections, " reconnection attempts.")
     print("\n")
+    
+    #Here is the code that controls the MySQL database.
+    cursor1 = mysql.cursor()
+    cursor1.execute("SELECT brew_name_time, mode FROM All_Records WHERE done=false")
+    currents = cursor1.fetchall()
+    for cur in currents:
+        cursor3 = mysql.cursor()
+        cursor4 = mysql.cursor()
+        try:
+            cursor3.execute("SELECT time FROM "+cur[0]+"_data LIMIT 1")
+            three = cursor3.fetchall()
+            cursor4.execute("SELECT row, average_temp FROM "+cur[0]+"_data ORDER BY row DESC LIMIT 1")
+            four = cursor4.fetchall()
+        except (Exception):
+            four = ()
+            print("There was an exception")
+        if (len(four)>0):
+            for x in four:
+                latest = x[0]
+                average_temp = x[1]
+                row = latest+1
+                row = str(row)
+            for x in three:
+                times = time.time()-float(x[0])
+        else:
+            times = time.time()
+            row = str(1)
+        timestamp = datetime.now().strftime("%d-%m-%y %H:%M:%S")
+        if (cur[1] == "fridge" or cur[1] == "time"):
+            current_temp = str(temp)
+            average_temp = (average_temp + temp)/2
+            average_temp = str(average_temp)
+            times = str(times)
+            timestamp = str(timestamp)
+            print(cur[0])
+            cursor3.execute("INSERT INTO "+cur[0]+"_data (time, timestamp, current_temp, average_temp, row) VALUES ('"+times+"', '"+timestamp+"', "+current_temp+", "+average_temp+", "+row+")")
+            mysql.commit()
+        else:
+            times = str(times)
+            timestamp = str(timestamp)
+            cursor3.execute("INSERT INTO "+cur[0]+"_data (time, timestamp, row) VALUES ('"+times+"', '"+timestamp+"', "+row+")")
+            mysql.commit()
+        
+        if (float(time) > 1209600 and int(row) != 1):
+            cursor3.execute("UPDATE "+cur[0]+" SET done = true WHERE done = false")
+            mysql.commit()
+            cursor3.execute("UPDATE All_Records SET done=true WHERE brew_name_time = '"+cur[0]+"'")
+            mysql.commit()
+    
+    
     end = time.time()
     delay = delay + (end-start)
     if delay > 60:
@@ -118,7 +168,3 @@ while total_time < 1209600:
     delay = 0
     end_total = time.time()
     total_time = total_time + (end_total - start_total)
-print("Two weeks have now passed! Time to bottle or brew a new batch!")
-print("There have been ", reconnections, " reconnections during this brew.")
-
-ubit.disconnect()

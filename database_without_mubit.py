@@ -24,7 +24,6 @@ while True:
     currents = cursor1.fetchall()
     print(currents)
     for cur in currents:
-        cursor2 = mysql.cursor()
         cursor3 = mysql.cursor()
         cursor4 = mysql.cursor()
         print(cur[0])
