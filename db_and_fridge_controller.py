@@ -112,10 +112,20 @@ while True:
     print("\n")
     
     #Here is the code that controls the MySQL database.
+    mysql.disconnect()
+    mysql = sql.connect(
+    host= hostn,
+    user=usernamen,
+    password=passwordn,
+    database=databasen
+    )
+    
     cursor1 = mysql.cursor()
     cursor1.execute("SELECT brew_name_time, mode FROM All_Records WHERE done=false")
     currents = cursor1.fetchall()
     for cur in currents:
+        three = ()
+        four = ()
         cursor3 = mysql.cursor()
         cursor4 = mysql.cursor()
         try:
@@ -129,7 +139,7 @@ while True:
         if (len(four)>0):
             for x in four:
                 latest = x[0]
-                average_temp = x[1]
+                average_temp = float(x[1])
                 row = latest+1
                 row = str(row)
             for x in three:
@@ -137,14 +147,17 @@ while True:
         else:
             times = time.time()
             row = str(1)
+            average_temp = float(1000)
         timestamp = datetime.now().strftime("%d-%m-%y %H:%M:%S")
         if (cur[1] == "fridge" or cur[1] == "time"):
             current_temp = str(temp)
-            average_temp = (average_temp + temp)/2
-            average_temp = str(average_temp)
+            if (average_temp == float(1000)):
+                average_temp = current_temp
+            else:
+                average_temp = (average_temp + temp)/2
+                average_temp = str(average_temp)
             times = str(times)
             timestamp = str(timestamp)
-            print(cur[0])
             cursor3.execute("INSERT INTO "+cur[0]+"_data (time, timestamp, current_temp, average_temp, row) VALUES ('"+times+"', '"+timestamp+"', "+current_temp+", "+average_temp+", "+row+")")
             mysql.commit()
         else:
@@ -153,7 +166,7 @@ while True:
             cursor3.execute("INSERT INTO "+cur[0]+"_data (time, timestamp, row) VALUES ('"+times+"', '"+timestamp+"', "+row+")")
             mysql.commit()
         
-        if (float(time) > 1209600 and int(row) != 1):
+        if (float(times) > 1209600 and int(row) != 1):
             cursor3.execute("UPDATE "+cur[0]+" SET done = true WHERE done = false")
             mysql.commit()
             cursor3.execute("UPDATE All_Records SET done=true WHERE brew_name_time = '"+cur[0]+"'")
