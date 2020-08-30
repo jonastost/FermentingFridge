@@ -6,8 +6,8 @@ import mysql.connector as sql
 import signal
 import os
 
-tempup = 18
-tempdown = 16
+tempup = 20
+tempdown = 17
 sleepingtime = 60
 
 hostn = "localhost"
@@ -20,15 +20,6 @@ def handler(signum, frame):
     raise Exception("Timeout")
 
 #Remember that if a new microbit program used, repair the devices first
-ubit = microbit.Microbit(
-    adapter_addr='B8:27:EB:E5:57:0A',
-    device_addr='C9:9F:35:CF:03:1D',
-    accelerometer_service=False,
-    button_service=False,
-    led_service=False,
-    magnetometer_service=False,
-    pin_service=False,
-    temperature_service=True)
 
 mysql = sql.connect(
     host= hostn,
@@ -41,18 +32,18 @@ os.system('sudo /var/www/html/rfoutlet/codesend 4199731')
 time.sleep(5)
 
 current = True
-reconnect = False
+reconnect = True
 off = False
 temp = 20
 reconnections = 0
 delay = 0
+reconnection_mubit = True
 
 print("connected and trying to receive sensor information")
 total_time = 0
 
 while True:
     start_total = time.time()
-    ubit.connect()
     disconnected = True
     while disconnected:
         start = time.time()
@@ -112,14 +103,19 @@ while True:
     print("\n")
     
     #Here is the code that controls the MySQL database.
-    mysql.disconnect()
-    mysql = sql.connect(
-    host= hostn,
-    user=usernamen,
-    password=passwordn,
-    database=databasen
-    )
-    
+    while reconnection_mubit:
+        try:
+            mysql.disconnect()
+            mysql = sql.connect(
+            host= hostn,
+            user=usernamen,
+            password=passwordn,
+            database=databasen
+            )
+            reconnection_mubit = False
+        except Exception:
+            print("SQL Reconnection")
+    reconnection_mubit = True
     cursor1 = mysql.cursor()
     cursor1.execute("SELECT brew_name_time, mode FROM All_Records WHERE done=false")
     currents = cursor1.fetchall()
@@ -154,7 +150,7 @@ while True:
             if (average_temp == float(1000)):
                 average_temp = current_temp
             else:
-                average_temp = (average_temp + temp)/2
+                average_temp = (average_temp*int(row) + temp)/(int(row)+1)
                 average_temp = str(average_temp)
             times = str(times)
             timestamp = str(timestamp)
