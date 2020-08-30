@@ -74,6 +74,7 @@ while True:
             reconnect = False
         except dbus.exceptions.DBusException:
             print("Connection lost, reestablishing...")
+            time.sleep(5)
             reconnections = reconnections + 1
             reconnect = True
         except Exception as ex:
@@ -150,7 +151,7 @@ while True:
             if (average_temp == float(1000)):
                 average_temp = current_temp
             else:
-                average_temp = (average_temp*int(row) + temp)/(int(row)+1)
+                average_temp = (average_temp*times + temp*sleepingtime)/(times+sleepingtime)
                 average_temp = str(average_temp)
             times = str(times)
             timestamp = str(timestamp)
