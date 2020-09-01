@@ -49,15 +49,14 @@ while True:
     while disconnected:
         start = time.time()
         try:
+            reconnect = True
             if reconnect:
                 connect = 100000
                 service = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
                 service.write(b'\n')
                 time.sleep(4)
                 signal.alarm(15)
-                while connect == 100000:
-                    connect = int(service.read(2))
-                    print(connect)
+                connect = int(service.read(2))
                 service.write(b'end')
                 signal.alarm(0)
                 
