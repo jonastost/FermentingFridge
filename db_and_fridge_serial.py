@@ -1,4 +1,5 @@
 import serial
+import sys
 import struct
 import dbus
 import time
@@ -39,6 +40,7 @@ temp = 20
 reconnections = 0
 delay = 0
 reconnection_mubit = True
+previous = 1000
 
 print("connected and trying to receive sensor information")
 total_time = 0
@@ -53,12 +55,18 @@ while True:
             if reconnect:
                 connect = 100000
                 service = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
-                service.write(b'\n')
-                time.sleep(4)
+                time.sleep(1)
                 signal.alarm(15)
-                connect = int(service.read(2))
-                service.write(b'end')
+                connect1 = service.read(1)
+                connect2 = service.read(1)
+                connect = int(connect2 + b'' + connect1)
                 signal.alarm(0)
+                signal.alarm(15)
+                if ((previous != 1000 and abs(previous-connect) > 3) or connect > 35):
+                    connect = int(connect1 + b'' + connect2)
+                    print(connect1)
+                signal.alarm(0)
+                previous = connect
                 
             temp = connect
             print("Temperature: ", temp)
@@ -78,6 +86,10 @@ while True:
         except Exception as ex:
             print("An Exception was thrown.")
             print(str(ex))
+            os.system('sudo /var/www/html/rfoutlet/codesend 4199740')
+            time.sleep(2)
+            os.system('sudo /var/www/html/rfoutlet/codesend 4199740')
+            sys.exit()
             reconnect = True
         end = time.time()
         delay = delay + (end-start)
