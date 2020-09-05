@@ -7,6 +7,7 @@ from datetime import datetime
 import mysql.connector as sql
 import signal
 import os
+from get_value import *
 
 tempup = 20
 tempdown = 17
@@ -54,41 +55,9 @@ while True:
             reconnect = True
             if reconnect:
                 connect = 100000
-                service = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
-                time.sleep(1)
                 signal.alarm(15)
-                connect1 = service.read(1)
-                print(connect1)
-                connect2 = service.read(1)
-                print(connect2)
-                connect3 = service.read(1)
-                print(connect3)
-                connect4 = service.read(1)
-                print(connect4)
-                connect5 = service.read(1)
-                print(connect5)
-                if (connect1 == b'.'):
-                    connect = connect4 + b'' + connect5 + b'' + connect1 + b'' + connect3 + b'' + connect2
-                elif (connect2 == b'.'):
-                    connect = connect5 + b'' + connect1 + b'' + connect2 + b'' + connect4 + b'' + connect3
-                elif (connect3 == b'.'):
-                    connect = connect1 + b'' + connect2 + b'' + connect3 + b'' + connect5 + b'' + connect4
-                elif (connect4 == b'.'):
-                    connect = connect2 + b'' + connect3 + b'' + connect4 + b'' + connect1 + b'' + connect5
-                elif (connect5 == b'.'):
-                    connect = connect3 + b'' + connect4 + b'' + connect5 + b'' + connect2 + b'' + connect1
-                elif (connect1 == b''):
-                    connect = connect2 + b'' + connect3
-                elif (connect2 == b''):
-                    connect = connect3 + b'' + connect4
-                elif (connect3 == b''):
-                    connect = connect4 + b'' + connect5
-                elif (connect4 == b''):
-                    connect = connect5 + b'' + connect1
-                elif (connect5 == b''):
-                    connect = connect1 + b'' + connect2      
+                connect = getValue(previous)
                 signal.alarm(0)
-                connect = float(connect)
                 previous = connect
                 
             temp = connect
